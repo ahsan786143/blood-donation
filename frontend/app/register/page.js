@@ -1,11 +1,8 @@
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://blood-donation-iota-hazel.vercel.app/";
 
 const BLOOD_GROUPS = [
   "A+",
@@ -46,7 +43,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,12 +57,15 @@ export default function RegisterPage() {
         throw new Error(data.message || "Registration failed");
       }
 
-      localStorage.setItem("token", data.token);
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
       localStorage.setItem("user", JSON.stringify(data));
 
       router.push("/dashboard");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -73,7 +73,6 @@ export default function RegisterPage() {
 
   return (
     <main className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-red-50 via-white to-rose-100 px-4 py-10">
-
       {/* Background Decorations */}
       <div className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-red-200/40 blur-3xl" />
 
@@ -81,10 +80,8 @@ export default function RegisterPage() {
 
       {/* Main Container */}
       <div className="relative z-10 mx-auto w-full max-w-lg">
-
         {/* Card */}
         <div className="rounded-3xl border border-white/70 bg-white/85 p-7 shadow-2xl shadow-red-900/10 backdrop-blur-xl sm:p-9">
-
           {/* Icon */}
           <div className="mb-5 flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 text-3xl text-white shadow-lg shadow-red-600/30">
@@ -116,7 +113,6 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-
             {/* Full Name */}
             <div>
               <label
@@ -336,4 +332,3 @@ export default function RegisterPage() {
     </main>
   );
 }
-

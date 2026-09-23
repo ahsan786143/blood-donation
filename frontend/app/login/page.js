@@ -1,10 +1,9 @@
+
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://blood-donation-iota-hazel.vercel.app/";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,44 +30,53 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      // Same-origin API
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          email: form.email.trim(),
+          password: form.password,
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Login failed");
+        throw new Error(data.message || "Invalid email or password");
       }
 
-      localStorage.setItem("token", data.token);
+      // Save login data
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
       localStorage.setItem("user", JSON.stringify(data));
 
+      // Dashboard
       router.push("/dashboard");
     } catch (err) {
-      setError(err.message);
+      setError(
+        err?.message || "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-red-50 via-white to-rose-100 flex items-center justify-center px-4 py-10">
-
+    <main className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center overflow-hidden bg-gradient-to-br from-red-50 via-white to-rose-100 px-4 py-10">
       {/* Background Decorations */}
-      <div className="absolute -top-32 -left-32 h-72 w-72 rounded-full bg-red-200/40 blur-3xl" />
+      <div className="absolute -left-32 -top-32 h-72 w-72 rounded-full bg-red-200/40 blur-3xl" />
       <div className="absolute -bottom-32 -right-32 h-80 w-80 rounded-full bg-rose-300/40 blur-3xl" />
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md">
-
         <div className="rounded-3xl border border-white/70 bg-white/80 p-8 shadow-2xl shadow-red-900/10 backdrop-blur-xl sm:p-10">
 
-          {/* Logo / Icon */}
+          {/* Logo */}
           <div className="mb-6 flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 text-3xl text-white shadow-lg shadow-red-600/30">
               ❤️
@@ -82,7 +90,7 @@ export default function LoginPage() {
             </h1>
 
             <p className="mt-2 text-sm text-gray-500">
-              Sign in to continue to your account
+              Sign in to continue to your blood donation account
             </p>
           </div>
 
@@ -98,6 +106,7 @@ export default function LoginPage() {
             </div>
           )}
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
 
             {/* Email */}
@@ -160,12 +169,12 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={form.password}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-100"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-11 pr-16 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-100"
                 />
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -200,9 +209,11 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="my-7 flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-200" />
+
             <span className="text-xs font-medium text-gray-400">
               NEW HERE?
             </span>
+
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
@@ -220,9 +231,10 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} Your Application. All rights reserved.
+          © {new Date().getFullYear()} Blood Donation. All rights reserved.
         </p>
       </div>
     </main>
   );
 }
+
