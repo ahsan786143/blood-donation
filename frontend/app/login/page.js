@@ -5,6 +5,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000";
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -18,20 +22,20 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
+    setForm((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setError("");
     setLoading(true);
 
     try {
-      // Same-origin API
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,16 +52,19 @@ export default function LoginPage() {
         throw new Error(data.message || "Invalid email or password");
       }
 
-      // Save login data
+      // Save token
       if (data.token) {
         localStorage.setItem("token", data.token);
       }
 
+      // Save user data
       localStorage.setItem("user", JSON.stringify(data));
 
-      // Dashboard
+      // Go to dashboard
       router.push("/dashboard");
     } catch (err) {
+      console.error("Login Error:", err);
+
       setError(
         err?.message || "Something went wrong. Please try again."
       );
@@ -68,12 +75,16 @@ export default function LoginPage() {
 
   return (
     <main className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center overflow-hidden bg-gradient-to-br from-red-50 via-white to-rose-100 px-4 py-10">
+
       {/* Background Decorations */}
       <div className="absolute -left-32 -top-32 h-72 w-72 rounded-full bg-red-200/40 blur-3xl" />
+
       <div className="absolute -bottom-32 -right-32 h-80 w-80 rounded-full bg-rose-300/40 blur-3xl" />
 
-      {/* Login Card */}
+      {/* Login Container */}
       <div className="relative z-10 w-full max-w-md">
+
+        {/* Card */}
         <div className="rounded-3xl border border-white/70 bg-white/80 p-8 shadow-2xl shadow-red-900/10 backdrop-blur-xl sm:p-10">
 
           {/* Logo */}
@@ -101,12 +112,15 @@ export default function LoginPage() {
 
               <div>
                 <p className="font-semibold">Login failed</p>
-                <p className="mt-0.5">{error}</p>
+
+                <p className="mt-0.5 break-words">
+                  {error}
+                </p>
               </div>
             </div>
           )}
 
-          {/* Form */}
+          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
 
             {/* Email */}
@@ -174,7 +188,9 @@ export default function LoginPage() {
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  onClick={() =>
+                    setShowPassword((prev) => !prev)
+                  }
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -189,6 +205,7 @@ export default function LoginPage() {
               className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-red-600 to-rose-600 py-3.5 font-bold text-white shadow-lg shadow-red-600/25 transition duration-300 hover:-translate-y-0.5 hover:from-red-700 hover:to-rose-700 hover:shadow-xl hover:shadow-red-600/30 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
+
                 {loading ? (
                   <>
                     <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -202,6 +219,7 @@ export default function LoginPage() {
                     </span>
                   </>
                 )}
+
               </span>
             </button>
           </form>
@@ -220,6 +238,7 @@ export default function LoginPage() {
           {/* Register */}
           <p className="text-center text-sm text-gray-500">
             Don&apos;t have an account?{" "}
+
             <Link
               href="/register"
               className="font-bold text-red-600 transition hover:text-red-700 hover:underline"
